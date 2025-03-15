@@ -1,0 +1,22 @@
+:root {
+  /* Tipografía */
+  --font-primary: "Geist", sans-serif;
+
+  /* Colores */
+  --color-primary: #9146FF;
+  --color-secondary: #f2e5ff;
+  --color-text: #213547;
+  --color-background: #ffffff;
+  --color-hover: #747bff;
+  --color-button-bg: #f9f9f9;
+  --color-dark-bg: #242424;
+  --color-dark-text: rgba(255, 255, 255, 0.87);
+  --color-tabs-bg: #f4f4f5;
+  --color-tabs-text: rgb(99, 99, 106);
+}
+
+body {
+  font-family: var(--font-primary);
+  color: var(--color-text);
+  background-color: var(--color-background);
+}
