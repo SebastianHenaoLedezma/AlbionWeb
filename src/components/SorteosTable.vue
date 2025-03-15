@@ -386,6 +386,15 @@ const sorteosFiltrados = computed(() => {
             ? sorteosOrdenados.value.filter((sorteo) => !sorteo.entregado) // Solo los no entregados
             : sorteosOrdenados.value; // Mostrar todos en historial
 
+    // Aplicar filtro si hay un usuario/personaje seleccionado
+    if (selectedFilter.value) {
+        filtrados = filtrados.filter((sorteo) =>
+            filterType.value === "usuario"
+                ? sorteo.usuario === selectedFilter.value
+                : sorteo.personaje === selectedFilter.value
+        );
+    }
+
     return filtrados;
 });
 
@@ -401,8 +410,11 @@ const premiosDisponibles = computed(() => {
 
 /** Función para filtrar por usuario o personaje */
 const filterBy = (tipo, valor) => {
+    console.log("Filtrando por:", tipo, valor);
     selectedFilter.value = valor;
     filterType.value = tipo;
+    console.log("selectedFilter:", selectedFilter.value);
+    console.log("filterType:", filterType.value);
 };
 
 /** Restablecer la vista completa */
@@ -430,7 +442,7 @@ const eliminarSorteo = (index) => {
         if (confirmar) {
             // Eliminar el sorteo del array
             sorteos.value.splice(sorteoIndex, 1);
-            
+
             // Actualizar el localStorage
             localStorage.setItem("sorteos", JSON.stringify(sorteos.value));
 
@@ -438,7 +450,6 @@ const eliminarSorteo = (index) => {
         }
     }
 };
-
 
 const ocultarTooltip = () => {
     tooltipVisible.value = false;
@@ -702,7 +713,6 @@ const marcarEntregado = (index) => {
     background-color: #fac0c08a;
     transform: scale(1.1); /* Pequeño efecto de zoom */
 }
-
 
 /* Mantiene la alineación de las columnas */
 .table-row {
