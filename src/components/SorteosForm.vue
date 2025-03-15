@@ -153,7 +153,6 @@ const guardarSorteo = () => {
     sorteos.push({ ...nuevoSorteo.value, fecha: new Date().toLocaleString() });
     localStorage.setItem("sorteos", JSON.stringify(sorteos));
 
-    console.log("Sorteo guardado:", nuevoSorteo.value);
     nuevoSorteo.value = {
         usuario: "",
         personaje: "",

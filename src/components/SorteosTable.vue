@@ -386,17 +386,33 @@ const sorteosFiltrados = computed(() => {
             ? sorteosOrdenados.value.filter((sorteo) => !sorteo.entregado) // Solo los no entregados
             : sorteosOrdenados.value; // Mostrar todos en historial
 
-    // Aplicar filtro si hay un usuario/personaje seleccionado
+    // Aplicar filtro de usuario/personaje
     if (selectedFilter.value) {
         filtrados = filtrados.filter((sorteo) =>
             filterType.value === "usuario"
-                ? sorteo.usuario === selectedFilter.value
-                : sorteo.personaje === selectedFilter.value
+                ? sorteo.usuario.toLowerCase() === selectedFilter.value.toLowerCase()
+                : sorteo.personaje.toLowerCase() === selectedFilter.value.toLowerCase()
         );
+    }
+
+    // Aplicar filtro de búsqueda
+    if (searchQuery.value.trim() !== "") {
+        const query = searchQuery.value.toLowerCase();
+        filtrados = filtrados.filter(
+            (sorteo) =>
+                sorteo.usuario.toLowerCase().includes(query) ||
+                sorteo.personaje.toLowerCase().includes(query)
+        );
+    }
+
+    // Aplicar filtro por tipo de premio
+    if (selectedPremio.value !== "") {
+        filtrados = filtrados.filter((sorteo) => sorteo.premio === selectedPremio.value);
     }
 
     return filtrados;
 });
+
 
 /** Cambiar el orden al hacer clic en "Fecha y Hora" */
 const toggleSortByDate = () => {
@@ -410,11 +426,8 @@ const premiosDisponibles = computed(() => {
 
 /** Función para filtrar por usuario o personaje */
 const filterBy = (tipo, valor) => {
-    console.log("Filtrando por:", tipo, valor);
     selectedFilter.value = valor;
     filterType.value = tipo;
-    console.log("selectedFilter:", selectedFilter.value);
-    console.log("filterType:", filterType.value);
 };
 
 /** Restablecer la vista completa */
@@ -445,8 +458,6 @@ const eliminarSorteo = (index) => {
 
             // Actualizar el localStorage
             localStorage.setItem("sorteos", JSON.stringify(sorteos.value));
-
-            console.log("Sorteo eliminado correctamente.");
         }
     }
 };
@@ -467,8 +478,6 @@ const marcarEntregado = (index) => {
         const fechaEntregaStr = `${fechaActual.getDate()}/${
             fechaActual.getMonth() + 1
         }/${fechaActual.getFullYear()}, ${fechaActual.getHours()}:${fechaActual.getMinutes()}:${fechaActual.getSeconds()}`;
-
-        console.log("Fecha de entrega registrada:", fechaEntregaStr);
 
         sorteos.value[sorteoIndex].entregado = true;
         sorteos.value[sorteoIndex].fechaEntrega = fechaEntregaStr; // Guardamos la fecha de entrega
