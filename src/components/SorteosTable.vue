@@ -4,17 +4,53 @@
         <div class="filters">
             <!-- Botón "Volver" cuando un usuario/personaje está seleccionado -->
             <button v-if="selectedFilter" class="back-btn" @click="resetFilter">
-                ⬅ Volver
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-arrow-left h-4 w-4 mr-2"
+                >
+                    <path d="m12 19-7-7 7-7"></path>
+                    <path d="M19 12H5"></path>
+                </svg>
+                <span>Volver</span>
             </button>
 
             <!-- Título de Historial del Usuario/Personaje -->
-            <h3 v-if="selectedFilter">
-                Historial de
-                {{
-                    filterType === "usuario"
-                        ? "@" + selectedFilter
-                        : selectedFilter
-                }}
+            <h3 v-if="selectedFilter" class="filters-title">
+                <span class="filters-subtitle">
+                    <span
+                        ><svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="22"
+                            height="22"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="var(--color-primary)"
+                            stroke-width="2"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            class="lucide lucide-user h-4 w-4"
+                        >
+                            <path
+                                d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"
+                            ></path>
+                            <circle cx="12" cy="7" r="4"></circle></svg></span
+                    >Historial de usuario:
+                </span>
+                <span class="filters-username">
+                    {{
+                        filterType === "usuario"
+                            ? "@" + selectedFilter
+                            : selectedFilter
+                    }}</span
+                >
             </h3>
 
             <!-- Contenedor del input y el select -->
@@ -45,12 +81,45 @@
 
         <!-- Encabezado de la Tabla -->
         <div class="table-header">
-            <span>Fecha y Hora</span>
+            <span @click="toggleSortByDate" class="sortable">
+                Fecha y Hora
+                <svg
+                    v-if="sortByDateDesc"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-chevron-down"
+                >
+                    <path d="m6 9 6 6 6-6"></path>
+                </svg>
+                <svg
+                    v-else
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    class="lucide lucide-chevron-up"
+                >
+                    <path d="m18 15-6-6-6 6"></path>
+                </svg>
+            </span>
             <span>Usuario de Twitch</span>
             <span>Personaje</span>
             <span>Premio</span>
             <span>Estado</span>
             <span>Acciones</span>
+            <span>Eliminar</span>
         </div>
 
         <!-- Cuerpo de la Tabla -->
@@ -83,32 +152,142 @@
                     <span
                         v-if="sorteo.premio === 'arma'"
                         v-html="svgEspada"
+                        class="premio_icon"
                     ></span>
                     <span
                         v-if="sorteo.premio === 'montura'"
                         v-html="svgMontura"
+                        class="premio_icon"
                     ></span>
                     {{ sorteo.premio }}
                 </span>
 
                 <!-- Estado con Icono -->
-                <span
-                    :class="{
-                        'status-pending': !sorteo.entregado,
-                        'status-delivered': sorteo.entregado,
-                    }"
-                >
-                    <span v-if="!sorteo.entregado">⏳</span>
-                    {{ sorteo.entregado ? "Entregado" : "Pendiente" }}
-                </span>
+                <!-- Estado con Tooltip -->
+                <!-- Contenedor del estado con tooltip -->
+                <!-- Contenedor del estado con tooltip (Solo para entregados) -->
+                <div class="tooltip-container">
+                    <span
+                        :class="{
+                            'status-pending': !sorteo.entregado,
+                            'status-delivered': sorteo.entregado,
+                        }"
+                        @mouseover="
+                            sorteo.entregado
+                                ? mostrarTooltip(index, sorteo.fechaEntrega)
+                                : null
+                        "
+                        @mouseleave="ocultarTooltip"
+                    >
+                        <span v-if="!sorteo.entregado">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-clock mr-1 h-3 w-3"
+                            >
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </span>
+
+                        <span v-if="sorteo.entregado">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-check h-3 w-3"
+                            >
+                                <path d="M20 6 9 17l-5-5"></path>
+                            </svg>
+                        </span>
+
+                        {{ sorteo.entregado ? "Entregado" : "Pendiente" }}
+
+                        <span v-if="sorteo.entregado">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="16"
+                                height="16"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="2"
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="lucide lucide-calendar h-3 w-3 ml-1"
+                            >
+                                <path d="M8 2v4"></path>
+                                <path d="M16 2v4"></path>
+                                <rect
+                                    width="18"
+                                    height="18"
+                                    x="3"
+                                    y="4"
+                                    rx="2"
+                                ></rect>
+                                <path d="M3 10h18"></path>
+                            </svg>
+                        </span>
+                    </span>
+
+                    <!-- Tooltip flotante solo para entregados -->
+                    <div
+                        v-if="
+                            tooltipVisible &&
+                            tooltipIndex === index &&
+                            sorteo.entregado
+                        "
+                        class="tooltip"
+                    >
+                        <div class="tooltip-arrow"></div>
+                        Entregado el: {{ tooltipFecha }}
+                    </div>
+                </div>
 
                 <button
                     class="deliver-btn"
                     @click="marcarEntregado(index)"
+                    :class="{ 'hidden-btn': sorteo.entregado }"
                     v-if="!sorteo.entregado"
                 >
-                    Marcar Entregado
+                    Entregado
                 </button>
+                <!-- Botón para eliminar -->
+                <span class="delete-btn" @click="eliminarSorteo(index)">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="lucide lucide-trash h-4 w-4"
+                    >
+                        <path d="M3 6h18"></path>
+                        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <path d="M10 11v6"></path>
+                        <path d="M14 11v6"></path>
+                        <path
+                            d="M4 6h16l-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6z"
+                        ></path>
+                    </svg>
+                </span>
             </div>
         </div>
 
@@ -128,6 +307,9 @@ const searchQuery = ref("");
 const selectedPremio = ref("");
 const selectedFilter = ref(null); // Guarda el usuario/personaje seleccionado
 const filterType = ref(null); // Indica si el filtro es por usuario o personaje
+const tooltipVisible = ref(false);
+const tooltipFecha = ref("");
+const tooltipIndex = ref(null);
 
 /** Cargar sorteos al montar el componente */
 onMounted(() => {
@@ -157,42 +339,64 @@ const svgMontura = `
   </svg>
 `;
 
-/** Obtener premios únicos */
-const premiosDisponibles = computed(() => {
-    return [...new Set(sorteos.value.map((s) => s.premio))];
+const sortByDateDesc = ref(true); // Controla el orden de la fecha (true = descendente, false = ascendente)
+
+const parseFecha = (fechaStr) => {
+    try {
+        // Separar fecha y hora
+        const [fecha, hora] = fechaStr.split(", ");
+
+        // Separar día, mes y año
+        const [dia, mes, año] = fecha.split("/").map(Number);
+
+        // Separar hora, minutos y segundos
+        const [horas, minutos, segundos] = hora.split(":").map(Number);
+
+        // Construir nueva fecha en formato adecuado
+        const fechaValida = new Date(
+            año,
+            mes - 1,
+            dia,
+            horas,
+            minutos,
+            segundos
+        );
+
+        return fechaValida;
+    } catch (error) {
+        console.error("Error al convertir la fecha:", error);
+        return new Date(0); // Fecha inválida para evitar fallos en la comparación
+    }
+};
+
+const sorteosOrdenados = computed(() => {
+    const sorteosCopia = [...sorteos.value].sort((a, b) => {
+        const fechaA = parseFecha(a.fecha);
+        const fechaB = parseFecha(b.fecha);
+
+        return sortByDateDesc.value ? fechaB - fechaA : fechaA - fechaB;
+    });
+
+    return sorteosCopia;
 });
 
-/** Filtrar sorteos según la pestaña, búsqueda y premio */
 const sorteosFiltrados = computed(() => {
     let filtrados =
         props.activeTab === "recientes"
-            ? sorteos.value.filter((sorteo) => !sorteo.entregado) // Solo los no entregados
-            : sorteos.value; // Mostrar todos en historial
-
-    if (selectedFilter.value) {
-        filtrados = filtrados.filter((sorteo) =>
-            filterType.value === "usuario"
-                ? sorteo.usuario === selectedFilter.value
-                : sorteo.personaje === selectedFilter.value
-        );
-    } else {
-        if (searchQuery.value) {
-            const query = searchQuery.value.toLowerCase();
-            filtrados = filtrados.filter(
-                (sorteo) =>
-                    sorteo.usuario.toLowerCase().includes(query) ||
-                    sorteo.personaje.toLowerCase().includes(query)
-            );
-        }
-
-        if (selectedPremio.value) {
-            filtrados = filtrados.filter(
-                (sorteo) => sorteo.premio === selectedPremio.value
-            );
-        }
-    }
+            ? sorteosOrdenados.value.filter((sorteo) => !sorteo.entregado) // Solo los no entregados
+            : sorteosOrdenados.value; // Mostrar todos en historial
 
     return filtrados;
+});
+
+/** Cambiar el orden al hacer clic en "Fecha y Hora" */
+const toggleSortByDate = () => {
+    sortByDateDesc.value = !sortByDateDesc.value; // Alternar el orden de fechas
+};
+
+/** Obtener premios únicos */
+const premiosDisponibles = computed(() => {
+    return [...new Set(sorteos.value.map((s) => s.premio))];
 });
 
 /** Función para filtrar por usuario o personaje */
@@ -207,33 +411,91 @@ const resetFilter = () => {
     filterType.value = null;
 };
 
-const obtenerIconoPremio = (premio) => {
-    return premio === "montura" ? "🦄" : "⚔️";
+const mostrarTooltip = (index, fechaEntrega) => {
+    if (fechaEntrega) {
+        // Solo muestra si hay fecha de entrega
+        tooltipIndex.value = index;
+        tooltipFecha.value = fechaEntrega;
+        tooltipVisible.value = true;
+    }
+};
+
+const eliminarSorteo = (index) => {
+    const sorteoIndex = sorteos.value.findIndex(
+        (s) => s === sorteosFiltrados.value[index]
+    );
+
+    if (sorteoIndex !== -1) {
+        const confirmar = confirm("¿Estás seguro de eliminar este sorteo?");
+        if (confirmar) {
+            // Eliminar el sorteo del array
+            sorteos.value.splice(sorteoIndex, 1);
+            
+            // Actualizar el localStorage
+            localStorage.setItem("sorteos", JSON.stringify(sorteos.value));
+
+            console.log("Sorteo eliminado correctamente.");
+        }
+    }
+};
+
+
+const ocultarTooltip = () => {
+    tooltipVisible.value = false;
+    tooltipIndex.value = null;
 };
 
 const marcarEntregado = (index) => {
     const sorteoIndex = sorteos.value.findIndex(
         (s) => s === sorteosFiltrados.value[index]
     );
+
     if (sorteoIndex !== -1) {
+        // Guardamos la fecha actual como fecha de entrega
+        const fechaActual = new Date();
+        const fechaEntregaStr = `${fechaActual.getDate()}/${
+            fechaActual.getMonth() + 1
+        }/${fechaActual.getFullYear()}, ${fechaActual.getHours()}:${fechaActual.getMinutes()}:${fechaActual.getSeconds()}`;
+
+        console.log("Fecha de entrega registrada:", fechaEntregaStr);
+
         sorteos.value[sorteoIndex].entregado = true;
+        sorteos.value[sorteoIndex].fechaEntrega = fechaEntregaStr; // Guardamos la fecha de entrega
+
         localStorage.setItem("sorteos", JSON.stringify(sorteos.value));
     }
 };
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 .table-container {
     padding-top: 10px;
 }
 /* Filtros */
 .filters {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
+    flex-direction: row;
+    align-items: center;
+    gap: 15px;
     margin-bottom: 10px;
     width: 100%;
+    .filters-title {
+        background-color: #faf5ff;
+        padding: 5px 10px;
+        border-radius: 10px;
+        display: flex;
+        gap: 7px;
+        .filters-subtitle {
+            color: #842acdce;
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 4px;
+        }
+        .filters-username {
+            color: #7a26c0;
+        }
+    }
 }
 
 /* Contenedor del buscador y selector */
@@ -270,20 +532,27 @@ const marcarEntregado = (index) => {
 
 /* Botón Volver */
 .back-btn {
-    background: #ccc;
     color: black;
     border: none;
     padding: 8px 16px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    span {
+        height: 18px;
+        text-align: center;
+        font-size: 15px;
+    }
 }
 
 /* Tabla */
 .table-header,
 .table-row {
     display: grid;
-    grid-template-columns: 1.5fr 2fr 1.5fr 1.5fr 1.5fr 1.5fr;
+    grid-template-columns: 1.5fr 2fr 1.5fr 1.5fr 1.5fr 1.5fr 0.5fr;
     padding: 1.1rem 0;
     border-bottom: 1px solid #ddd;
 }
@@ -321,26 +590,52 @@ const marcarEntregado = (index) => {
 
 /* Estado */
 .status-pending {
-    color: #f39c12;
-    font-weight: bold;
+    background-color: rgb(255, 251, 235);
+    border: 1px solid rgb(253, 230, 138);
+    width: max-content;
+    padding: 2px 10px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
+    justify-content: center;
+    color: #b45309;
+    font-weight: bold;
     gap: 5px;
 }
 
+.status-pending > span {
+    height: 16px;
+}
+
 .status-delivered {
-    color: #2ecc71;
+    color: #15803d;
     font-weight: bold;
+    background-color: #f0fdf4;
+    border: 1px solid rgb(187, 247, 208);
+    width: max-content;
+    padding: 2px 10px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    gap: 5px;
+}
+.status-delivered > span {
+    height: 16px;
 }
 
 /* Botón de entrega */
 .deliver-btn {
-    background: #2ecc71;
-    color: white;
-    border: none;
+    color: #16a34a;
+    border: 1px solid #2ecc71;
     padding: 5px 10px;
     border-radius: 5px;
     cursor: pointer;
+    background-color: transparent;
+    width: max-content;
+    padding: 10px;
+    font-weight: 600;
+    font-family: var(--font-primary);
 }
 
 /* Mensaje de "No hay sorteos" */
@@ -351,14 +646,92 @@ const marcarEntregado = (index) => {
     margin-top: 10px;
 }
 
-/* Botón Volver */
-.back-btn {
-    background: #ccc;
-    color: black;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 6px;
+.premio {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.premio_icon {
+    height: 24px;
+}
+
+/* Hace que la columna "Fecha y Hora" sea clickeable */
+.sortable {
     cursor: pointer;
-    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: bold;
+}
+
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip {
+    position: absolute;
+    top: -130%;
+    left: 25%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    white-space: nowrap;
+    box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    opacity: 0;
+    animation: fadeIn 0.3s forwards;
+}
+/* Asegura que la columna de eliminar esté centrada */
+.delete-btn {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    grid-column: 7 / 8;
+    color: red;
+    width: max-content;
+    padding: 10px;
+    border-radius: 9px;
+    transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
+}
+
+.delete-btn:hover {
+    background-color: #fac0c08a;
+    transform: scale(1.1); /* Pequeño efecto de zoom */
+}
+
+
+/* Mantiene la alineación de las columnas */
+.table-row {
+    display: grid;
+    grid-template-columns: 1.5fr 2fr 1.5fr 1.5fr 1.5fr 1.5fr 0.5fr;
+    align-items: center;
+}
+
+/* Flechita del tooltip */
+.tooltip-arrow {
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(0, 0, 0, 0.85);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
 }
 </style>
